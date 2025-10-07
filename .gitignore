@@ -1,0 +1,12 @@
+# IntelliJ IDEA Files
+.idea/
+*.iml
+
+# Compiled Java Classes and Build Artifacts
+target/
+build/
+bin/
+*.class
+
+# Logs and system files
+*.log
