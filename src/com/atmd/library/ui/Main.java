@@ -1,16 +1,16 @@
 package com.atmd.library.ui;
-import com.atmd.library.domain.Book;
-import com.atmd.library.domain.BookOperation;
-import com.atmd.library.domain.LibraryRepository;
-import com.atmd.library.domain.LibraryService;
+import com.atmd.library.domain.*;
 
 import java.util.ArrayList;
 import  java.util.Scanner;
+import java.util.List;
 
-public class Library {
+public class Main {
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
-        LibraryService libraryService = new LibraryService();
+//        BookRepository bookRepository = new ArrayListBookRepository();
+        BookRepository bookRepository = new HashMapBookRepository();
+        BookService bookService = new BookService(bookRepository);
         for (int i = 1; i <= 30; i++) {
             // 动态生成书名，例如："测试书籍 No.1"
             String title = "测试书籍 No." + i;
@@ -33,7 +33,7 @@ public class Library {
             book.setPublicationYear(year);
 
             // 调用 addBook 方法加入图书
-            libraryService.addBook(book);
+            bookService.addBook(book);
 
             // [可选] 打印一下，确认加入了哪本书
             System.out.println("已添加: " + title + " (ISBN: " + isbn + ")");
@@ -68,7 +68,7 @@ public class Library {
                 book.setPublicationYear(publicationYear);
 
                 long startTime = System.nanoTime();
-                libraryService.addBook(book);
+                bookService.addBook(book);
                 long endTime = System.nanoTime();
                 long durationInNanos = endTime - startTime;
 
@@ -85,7 +85,7 @@ public class Library {
                 String isbn = scanner.nextLine();
 
                 long startTime = System.nanoTime();
-                libraryService.deleteBook(isbn);
+                bookService.deleteBook(isbn);
                 long endTime = System.nanoTime();
                 long durationInNanos = endTime - startTime;
                 System.out.println("功能2耗时: " + durationInNanos);
@@ -94,7 +94,7 @@ public class Library {
                 System.out.print("输入该书籍的isbn: ");
                 String isbn = scanner.nextLine();
 
-                if(libraryService.getBookByIsbn(isbn)==null){
+                if(bookService.getBookByIsbn(isbn)==null){
                     System.out.println("需要输入的isbn不存在!");
                     continue;
                 }
@@ -115,13 +115,13 @@ public class Library {
                 book.setPublicationYear(publicationYear);
 
                 long startTime = System.nanoTime();
-                libraryService.updateBook(book);
+                bookService.updateBook(book);
                 long endTime = System.nanoTime();
                 long durationInNanos = endTime - startTime;
                 System.out.println("功能3耗时: " + durationInNanos);
 
             }else if(operation.equals("4")){
-                ArrayList<Book> result = new ArrayList<>();
+                List<Book> result = new ArrayList<>();
 
                 System.out.println("选择需要查询的词语");
                 System.out.println("1.isbn");
@@ -132,37 +132,31 @@ public class Library {
                 if(choice.equals("1")){
                     System.out.print("输入isbn: ");
                     String isbn = scanner.nextLine();
-                    result.add(libraryService.getBookByIsbn(isbn));
+                    result.add(bookService.getBookByIsbn(isbn));
                 }else if(choice.equals("2")){
                     System.out.print("输入书名: ");
                     String title = scanner.nextLine();
-                    result = libraryService.getBooksByTitle(title);
+                    result = bookService.getBooksByTitle(title);
                 }else if(choice.equals("3")){
                     System.out.print("输入作者: ");
                     String author = scanner.nextLine();
-                    result = libraryService.getBookByAuthor(author);
+                    result = bookService.getBookByAuthor(author);
                 }else{
                     System.out.println("输入不合法");
                     continue;
                 }
                 for(Book book : result){
-                    System.out.println("\nISBN: " + book.getIsbn());
-                    System.out.println("Title: " + book.getTitle());
-                    System.out.println("Author: " + book.getAuthor());
-                    System.out.println("PublicationYear: " + book.getPublicationYear() + "\n");
+                    System.out.println(book.toString());
                 }
 
             }else if(operation.equals("5")){
                 long startTime = System.nanoTime();
-                ArrayList<Book> result = libraryService.findAllBooks();
+                List<Book> result = bookService.findAllBooks();
                 long endTime = System.nanoTime();
                 long durationInNanos = endTime - startTime;
 
                 for(Book book : result){
-                    System.out.println("ISBN: " + book.getIsbn());
-                    System.out.println("Title: " + book.getTitle());
-                    System.out.println("Author: " + book.getAuthor());
-                    System.out.println("PublicationYear: " + book.getPublicationYear() + "\n");
+                    System.out.println(book.toString());
                 }
 
                 System.out.println("遍历 耗时: " + durationInNanos);

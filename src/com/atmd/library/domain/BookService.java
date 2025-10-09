@@ -1,9 +1,14 @@
 package com.atmd.library.domain;
 
-import java.util.ArrayList;
+import java.util.List;
 
-public class LibraryService {
-    private LibraryRepository libraryRepository = new LibraryRepository();
+public class BookService {
+    // 不再直接new一个具体的实现，而是持有一个接口引用
+    private final BookRepository bookRepository;
+
+    public BookService(BookRepository bookRepository){
+        this.bookRepository = bookRepository;
+    }
 
     /**
      * 添加书籍的业务逻辑
@@ -16,12 +21,12 @@ public class LibraryService {
             return false;
         }
         //业务规则2:检查isbn是否已经存在
-        if(libraryRepository.findByIsbn(newBook.getIsbn())!=null){
+        if(bookRepository.findByIsbn(newBook.getIsbn())!=null){
             System.out.println("错误!isbn已存在!");
             return false;
         }
         //业务规则都通过之后,再进行Repository进行存储
-        libraryRepository.save(newBook);
+        bookRepository.save(newBook);
         System.out.println("添加 <" + newBook.getTitle() + "> 已成功!");
         return true;
     }
@@ -32,12 +37,12 @@ public class LibraryService {
      */
     public boolean deleteBook(String isbn){
         //业务规则1:检查isbn是否存在
-        if(libraryRepository.findByIsbn(isbn)==null){
+        if(bookRepository.findByIsbn(isbn)==null){
             System.out.println("错误!需要删除书籍的isbn不存在!");
             return false;
         }
         //完成所有业务规则后,开始进行删除
-        libraryRepository.deleteByIsbn(isbn);
+        bookRepository.deleteByIsbn(isbn);
         System.out.println("isbn编号为" + isbn + "的书籍已经删除");
         return true;
     }
@@ -48,7 +53,7 @@ public class LibraryService {
      */
     public Book updateBook(Book updateBook){
         //业务规则1:检查需要更新的书籍的isbn是否存在(其实在此之前会进行检查,使得用户使用更加人性化)
-        Book book = libraryRepository.findByIsbn(updateBook.getIsbn());
+        Book book = bookRepository.findByIsbn(updateBook.getIsbn());
         if(book == null){
             System.out.println("错误!需要更新书籍的isbn不存在!");
             return null;
@@ -72,20 +77,20 @@ public class LibraryService {
      * 查询,氛围isbn精查询,和title和author浅查询
      * @return Book
      */
-    public ArrayList<Book> findAllBooks(){
-        return libraryRepository.findAll();
+    public List<Book> findAllBooks(){
+        return bookRepository.findAll();
     }
 
     public Book getBookByIsbn(String isbn){
-        return libraryRepository.findByIsbn(isbn);
+        return bookRepository.findByIsbn(isbn);
     }
 
-    public ArrayList<Book> getBooksByTitle(String title){
-        return libraryRepository.findByTitle(title);
+    public List<Book> getBooksByTitle(String title){
+        return bookRepository.findByTitleContains(title);
     }
 
-    public ArrayList<Book> getBookByAuthor(String author){
-        return libraryRepository.findByAuthor(author);
+    public List<Book> getBookByAuthor(String author){
+        return bookRepository.findByAuthorContains(author);
     }
 
 }
