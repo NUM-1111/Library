@@ -1,4 +1,4 @@
-package com.atmd.library.domain;
+package com.atmd.library.domain.model;
 
 import java.util.Objects;
 
@@ -58,12 +58,7 @@ public class Book {
 
     @Override
     public String toString() {
-        return "Book{" +
-                "title='" + title + '\'' +
-                ", author='" + author + '\'' +
-                ", isbn='" + isbn + '\'' +
-                ", publicationYear='" + publicationYear + '\'' +
-                '}';
+        return "ISBN: " + isbn + ", 书名: " + title + ", 作者: " + author + ", 出版年份: " + publicationYear;
     }
 
     ///方法

@@ -1,4 +1,9 @@
-package com.atmd.library.domain;
+package com.atmd.library.domain.services;
+
+import com.atmd.library.domain.model.Book;
+import com.atmd.library.domain.repository.BookRepository;
+import com.atmd.library.exception.BookNotFoundException;
+import com.atmd.library.exception.DuplicateIsbnException;
 
 import java.util.List;
 
@@ -14,16 +19,14 @@ public class BookService {
      * 添加书籍的业务逻辑
      * @return true 如果添加成功, false 如果失败 (例如ISBN已存在)
      */
-    public boolean addBook(Book newBook){
+    public boolean addBook(Book newBook) throws RuntimeException{
         //业务规则1:验证数据完整性
         if(newBook.getIsbn()==null || newBook.getTitle()==null || newBook.getIsbn().isEmpty() || newBook.getTitle().isEmpty()){
-            System.out.println("错误!书籍信息不完整!");
-            return false;
+            throw new IllegalArgumentException("错误：书籍的 ISBN 和 书名 不能为空或null。");
         }
         //业务规则2:检查isbn是否已经存在
         if(bookRepository.findByIsbn(newBook.getIsbn())!=null){
-            System.out.println("错误!isbn已存在!");
-            return false;
+            throw new DuplicateIsbnException("错误：ISBN " + newBook.getIsbn() + " 已存在。");
         }
         //业务规则都通过之后,再进行Repository进行存储
         bookRepository.save(newBook);
@@ -35,11 +38,10 @@ public class BookService {
      * 删除书籍的业务逻辑
      * @return true 如果删除成功, false 如果失败 (例如ISBN不存在)
      */
-    public boolean deleteBook(String isbn){
+    public boolean deleteBook(String isbn) throws BookNotFoundException{
         //业务规则1:检查isbn是否存在
         if(bookRepository.findByIsbn(isbn)==null){
-            System.out.println("错误!需要删除书籍的isbn不存在!");
-            return false;
+            throw new BookNotFoundException("错误：无法删除，未找到ISBN为 " + isbn + " 的书籍。");
         }
         //完成所有业务规则后,开始进行删除
         bookRepository.deleteByIsbn(isbn);
@@ -51,12 +53,11 @@ public class BookService {
      * 修改书籍的业务逻辑
      * @return Book,用于ui显示
      */
-    public Book updateBook(Book updateBook){
+    public Book updateBook(Book updateBook) throws BookNotFoundException{
         //业务规则1:检查需要更新的书籍的isbn是否存在(其实在此之前会进行检查,使得用户使用更加人性化)
         Book book = bookRepository.findByIsbn(updateBook.getIsbn());
         if(book == null){
-            System.out.println("错误!需要更新书籍的isbn不存在!");
-            return null;
+            throw new BookNotFoundException("错误：无法更新，未找到ISBN为 " + book.getIsbn() + " 的书籍。");
         }
         //业务逻辑2:更新必要部分
         if(updateBook.getAuthor()!=null || !updateBook.getAuthor().isEmpty()){
