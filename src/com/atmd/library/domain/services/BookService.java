@@ -30,7 +30,6 @@ public class BookService {
         }
         //业务规则都通过之后,再进行Repository进行存储
         bookRepository.save(newBook);
-        System.out.println("添加 <" + newBook.getTitle() + "> 已成功!");
         return true;
     }
 
@@ -45,7 +44,6 @@ public class BookService {
         }
         //完成所有业务规则后,开始进行删除
         bookRepository.deleteByIsbn(isbn);
-        System.out.println("isbn编号为" + isbn + "的书籍已经删除");
         return true;
     }
 
@@ -70,7 +68,6 @@ public class BookService {
             book.setPublicationYear(updateBook.getPublicationYear());
         }
         //所欲业务逻辑完成后
-        System.out.println("更新信息成功");
         return book;
     }
 

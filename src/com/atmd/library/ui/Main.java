@@ -1,6 +1,7 @@
 package com.atmd.library.ui;
 import com.atmd.library.domain.model.Book;
 import com.atmd.library.domain.repository.BookRepository;
+import com.atmd.library.domain.repository.DatabaseBookRepository;
 import com.atmd.library.domain.repository.LinkedHashMapBookRepository;
 import com.atmd.library.domain.services.BookService;
 import com.atmd.library.exception.BookNotFoundException;
@@ -12,12 +13,13 @@ import java.util.List;
 
 public class Main {
     public static void main(String[] args) {
-        final String DATABASE_FILE = "src/com/atmd/library/resources/library.csv";
+//        final String DATABASE_FILE = "src/com/atmd/library/resources/library.csv";
         Scanner scanner = new Scanner(System.in);
 //        BookRepository bookRepository = new ArrayListBookRepository();//数据存储方式为动态列表
 //        BookRepository bookRepository = new HashMapBookRepository();//数据存储方式为哈希表
-        BookRepository bookRepository = new LinkedHashMapBookRepository();//数据存储方式为双向链表+哈希表-->解决打印乱序问题
-        bookRepository.loadFromFile(DATABASE_FILE); // 程序启动时加载
+//        BookRepository bookRepository = new LinkedHashMapBookRepository();//数据存储方式为双向链表+哈希表-->解决打印乱序问题
+        BookRepository bookRepository = new DatabaseBookRepository();//数据库存储
+//        bookRepository.loadFromFile(DATABASE_FILE); // 程序启动时加载
         BookService bookService = new BookService(bookRepository);
 
         LOOP_BREAK:
@@ -79,6 +81,7 @@ public class Main {
                     bookService.deleteBook(isbn);
                     long endTime = System.nanoTime();
                     long durationInNanos = endTime - startTime;
+                    System.out.println("isbn编号为" + isbn + "的书籍已经删除");
                     System.out.println("功能2耗时: " + durationInNanos);
 
                 }catch(BookNotFoundException e){
@@ -115,6 +118,7 @@ public class Main {
                     bookService.updateBook(book);
                     long endTime = System.nanoTime();
                     long durationInNanos = endTime - startTime;
+                    System.out.println("更新信息成功");
                     System.out.println("功能3耗时: " + durationInNanos);
                 }catch (BookNotFoundException e){
                     System.out.println(e.getMessage());
@@ -134,7 +138,10 @@ public class Main {
                     if (choice.equals("1")) {
                         System.out.print("输入isbn: ");
                         String isbn = scanner.nextLine();
-                        result.add(bookService.getBookByIsbn(isbn));
+                        Book book = bookService.getBookByIsbn(isbn);
+                        if(book != null){
+                            result.add(bookService.getBookByIsbn(isbn));
+                        }
                     } else if (choice.equals("2")) {
                         System.out.print("输入书名: ");
                         String title = scanner.nextLine();
@@ -149,6 +156,10 @@ public class Main {
                     }
                     for (Book book : result) {
                         System.out.println(book.toString());
+                    }
+                    // 如果想提示用户，可以检查集合是否为空
+                    if (result.isEmpty()) {
+                        System.out.println("未找到相关书籍。");
                     }
 
                 }
@@ -171,7 +182,7 @@ public class Main {
 
                 case"6":
                 {
-                    bookRepository.saveToFile(DATABASE_FILE);
+//                    bookRepository.saveToFile(DATABASE_FILE);
                     System.out.println("数据已保存，程序退出。");
                     break LOOP_BREAK;
                 }
