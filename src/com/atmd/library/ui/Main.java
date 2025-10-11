@@ -122,6 +122,8 @@ public class Main {
                     System.out.println("功能3耗时: " + durationInNanos);
                 }catch (BookNotFoundException e){
                     System.out.println(e.getMessage());
+                }catch (RuntimeException e){
+                    System.out.println(e.getMessage());
                 }
                 break;
 

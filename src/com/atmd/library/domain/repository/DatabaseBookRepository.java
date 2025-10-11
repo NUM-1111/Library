@@ -51,6 +51,25 @@ public class DatabaseBookRepository implements BookRepository {
     }
 
     @Override
+    public void update(Book book){
+        String sql = "UPDATE books SET title = ?, author = ?, publication_year = ? WHERE isbn = ?";
+        try(Connection conn = DatabaseUtil.getConnection();
+            PreparedStatement pstmt = conn.prepareStatement(sql)){
+
+            pstmt.setString(1, book.getTitle());
+            pstmt.setString(2, book.getAuthor());
+            pstmt.setInt(3, Integer.parseInt(book.getPublicationYear()));
+            pstmt.setString(4, book.getIsbn()); // WHERE 条件
+
+            pstmt.executeUpdate();
+        }catch (SQLException e){
+            throw new RuntimeException("数据库更新失败。", e);
+        }catch (NumberFormatException e){
+            throw new RuntimeException("年份格式错误，无法更新。", e);
+        }
+    }
+
+    @Override
     public List<Book> findAll(){
         List<Book> books = new ArrayList<>();
         String sql = "SELECT * FROM books";

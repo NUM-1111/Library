@@ -27,6 +27,10 @@ public class HashMapBookRepository implements BookRepository {
         return library.get(isbn);
     }
 
+    @Override
+    public void update(Book book) {
+        System.out.println();
+    }
 
     /**
      * 根据书名模糊查找书籍(Read)

@@ -53,22 +53,27 @@ public class BookService {
      */
     public Book updateBook(Book updateBook) throws BookNotFoundException{
         //业务规则1:检查需要更新的书籍的isbn是否存在(其实在此之前会进行检查,使得用户使用更加人性化)
-        Book book = bookRepository.findByIsbn(updateBook.getIsbn());
-        if(book == null){
-            throw new BookNotFoundException("错误：无法更新，未找到ISBN为 " + book.getIsbn() + " 的书籍。");
+        Book bookToUpdate  = bookRepository.findByIsbn(updateBook.getIsbn());
+        if(bookToUpdate  == null){
+            throw new BookNotFoundException("错误：无法更新，未找到ISBN为 " + updateBook.getIsbn() + " 的书籍。");
         }
-        //业务逻辑2:更新必要部分
-        if(updateBook.getAuthor()!=null || !updateBook.getAuthor().isEmpty()){
-            book.setAuthor(updateBook.getAuthor());
+        // 业务逻辑2: 使用传入的数据更新从数据库查找到的对象
+        // 修正：判断逻辑可以更严谨，只有在传入的字符串非空时才更新
+        if (updateBook.getAuthor() != null && !updateBook.getAuthor().isEmpty()) {
+            bookToUpdate.setAuthor(updateBook.getAuthor());
         }
-        if(updateBook.getTitle()!=null || !updateBook.getTitle().isEmpty()){
-            book.setTitle(updateBook.getTitle());
+        if (updateBook.getTitle() != null && !updateBook.getTitle().isEmpty()) {
+            bookToUpdate.setTitle(updateBook.getTitle());
         }
-        if(updateBook.getPublicationYear()!=null || !updateBook.getPublicationYear().isEmpty()){
-            book.setPublicationYear(updateBook.getPublicationYear());
+        if (updateBook.getPublicationYear() != null && !updateBook.getPublicationYear().isEmpty()) {
+            bookToUpdate.setPublicationYear(updateBook.getPublicationYear());
         }
+
+        //关键:更新到数据库里
+        bookRepository.update(bookToUpdate);
+
         //所欲业务逻辑完成后
-        return book;
+        return bookToUpdate;
     }
 
     /**

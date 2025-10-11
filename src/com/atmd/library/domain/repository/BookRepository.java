@@ -7,6 +7,7 @@ public interface BookRepository {
     //基本功能
     void save(Book book);
     Book findByIsbn(String isbn);
+    void update(Book book);
     List<Book> findAll();
     List<Book> findByTitleContains(String title);
     List<Book> findByAuthorContains(String author);
