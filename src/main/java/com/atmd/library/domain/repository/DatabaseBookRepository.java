@@ -7,6 +7,8 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class DatabaseBookRepository implements BookRepository {
     @Override
@@ -80,14 +82,7 @@ public class DatabaseBookRepository implements BookRepository {
             PreparedStatement pstmt = conn.prepareStatement(sql);
             ResultSet rs = pstmt.executeQuery()){
 
-            while(rs.next()){
-                books.add(new Book(
-                        rs.getString("title"),
-                        rs.getString("author"),
-                        String.valueOf(rs.getInt("publication_year")),
-                        rs.getString("isbn")
-                ));
-            }
+            return resultSetToSream(rs).collect(Collectors.toList());
         }catch (SQLException e){
             System.err.println("查询所有数据失败: " + e.getMessage());
         }
@@ -118,14 +113,8 @@ public class DatabaseBookRepository implements BookRepository {
 
             pstmt.setString(1, "%" + title +"%");
             ResultSet rs = pstmt.executeQuery();
-            while(rs.next()){
-                books.add(new Book(
-                        rs.getString("title"),
-                        rs.getString("author"),
-                        String.valueOf(rs.getInt("publication_year")),
-                        rs.getString("isbn")
-                ));
-            }
+
+            return resultSetToSream(rs).collect(Collectors.toList());
         }catch (SQLException e){
             System.err.println("按照书名查询失败: " + e.getMessage());
         }
@@ -141,18 +130,30 @@ public class DatabaseBookRepository implements BookRepository {
 
             pstmt.setString(1, "%" + author + "%");
             ResultSet rs = pstmt.executeQuery();
-            while (rs.next()) {
-                books.add(new Book(
-                        rs.getString("title"),
-                        rs.getString("author"),
-                        String.valueOf(rs.getInt("publication_year")),
-                        rs.getString("isbn")
-                ));
-            }
+            return resultSetToSream(rs).collect(Collectors.toList());
         } catch (SQLException e) {
             System.err.println("按作者查询失败: " + e.getMessage());
         }
         return books;
+    }
+
+    //辅助方法1:将 ResultSet 的一行映射为一个Book对象
+    private Book mapRowToBook(ResultSet rs) throws SQLException{
+        return new Book(
+                rs.getString("title"),
+                rs.getString("author"),
+                String.valueOf(rs.getInt("publication_year")),
+                rs.getString("isbn")
+        );
+    }
+
+    //辅助方法2:将整个ResultSet转换为一个Stream<Book>
+    private Stream<Book> resultSetToSream(ResultSet rs) throws SQLException{
+        List<Book> books = new ArrayList<>();
+        while(rs.next()){
+            books.add(mapRowToBook(rs));
+        }
+        return books.stream();
     }
 
     // 文件操作方法在这个实现中不再需要，可以留空或抛出不支持的操作异常

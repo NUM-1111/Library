@@ -18,7 +18,7 @@ public class ArrayListBookRepository implements BookRepository {
      * 保存一本书(save)
      */
     @Override
-    public void save(Book book){
+    public synchronized void save(Book book){
         library.add(book);
     }
 
@@ -26,14 +26,14 @@ public class ArrayListBookRepository implements BookRepository {
      * 根据ISBN查找一本书(Read)
      * */
     @Override
-    public Optional<Book> findByIsbn(String isbn){
+    public  Optional<Book> findByIsbn(String isbn){
         return library.stream()
                 .filter(book -> book.getIsbn().equals(isbn))
                 .findFirst();
     }
 
     @Override
-    public void update(Book book) {
+    public synchronized void update(Book book) {
         System.out.println();
     }
 
@@ -89,7 +89,7 @@ public class ArrayListBookRepository implements BookRepository {
      * 根据ISBN删除一本书
      * */
     @Override
-    public void deleteByIsbn(String isbn){
+    public synchronized void deleteByIsbn(String isbn){
         library.removeIf(book -> book.getIsbn().equals(isbn));
     }
 

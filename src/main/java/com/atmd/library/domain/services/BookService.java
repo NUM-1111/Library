@@ -37,7 +37,7 @@ public class BookService {
      */
     public void deleteBook(String isbn) throws BookNotFoundException{
         //业务规则1:检查isbn是否存在
-        if(bookRepository.findByIsbn(isbn).isEmpty()){
+        if(!bookRepository.findByIsbn(isbn).isPresent()){
             throw new BookNotFoundException("错误：无法删除，未找到ISBN为 " + isbn + " 的书籍。");
         }
         //完成所有业务规则后,开始进行删除
