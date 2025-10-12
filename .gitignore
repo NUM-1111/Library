@@ -1,12 +1,54 @@
-# IntelliJ IDEA Files
-.idea/
-*.iml
-
+# =================================================================
 # Compiled Java Classes and Build Artifacts
+# 编译后的Java类文件和构建产物
+# =================================================================
 target/
 build/
 bin/
+out/
 *.class
+*.jar
+*.war
+*.ear
 
-# Logs and system files
+# =================================================================
+# IDE Files
+# 主流IDE的配置文件 (IntelliJ, Eclipse, VSCode)
+# =================================================================
+.idea/
+*.iml
+*.iws
+.classpath
+.project
+.settings/
+.vscode/
+
+# =================================================================
+# Maven/Gradle Files
+# Maven和Gradle等构建工具生成的文件
+# =================================================================
+.gradle/
+build/
+.mvn/
+mvnw
+mvnw.cmd
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+release.properties
+
+# =================================================================
+# Log and System Files
+# 日志文件和操作系统生成的文件
+# =================================================================
 *.log
+logs/
+hs_err_pid*
+.DS_Store
+
+# =================================================================
+# Local Configuration
+# 本地配置文件 (例如数据库密码，不应上传到代码库)
+# =================================================================
+# 假如你有一个 local.properties 文件来存储数据库密码等敏感信息
+# local.properties

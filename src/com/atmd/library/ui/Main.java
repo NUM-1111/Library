@@ -8,6 +8,7 @@ import com.atmd.library.exception.BookNotFoundException;
 import com.atmd.library.exception.DuplicateIsbnException;
 
 import java.util.ArrayList;
+import java.util.Optional;
 import  java.util.Scanner;
 import java.util.List;
 
@@ -16,7 +17,6 @@ public class Main {
 //        final String DATABASE_FILE = "src/com/atmd/library/resources/library.csv";
         Scanner scanner = new Scanner(System.in);
 //        BookRepository bookRepository = new ArrayListBookRepository();//数据存储方式为动态列表
-//        BookRepository bookRepository = new HashMapBookRepository();//数据存储方式为哈希表
 //        BookRepository bookRepository = new LinkedHashMapBookRepository();//数据存储方式为双向链表+哈希表-->解决打印乱序问题
         BookRepository bookRepository = new DatabaseBookRepository();//数据库存储
 //        bookRepository.loadFromFile(DATABASE_FILE); // 程序启动时加载
@@ -94,42 +94,45 @@ public class Main {
                     System.out.print("输入该书籍的isbn: ");
                     String isbn = scanner.nextLine();
 
-                    if (bookService.getBookByIsbn(isbn) == null) {
-                        System.out.println("需要输入的isbn不存在!");
-                        continue;
+                    Optional<Book> bookOptional = bookService.getBookByIsbn(isbn);
+
+                    if (bookOptional.isPresent()) {
+                        // --- 值存在时执行 ---
+                        Book existingBook = bookOptional.get();
+
+                        // ... (提示用户输入、创建 updatedInfo 对象的代码不变) ...
+                        System.out.println("找到了书籍，请输入新信息 (不想修改请直接回车):");
+                        System.out.print("输入需要修改的书名: ");
+                        String title = scanner.nextLine();
+                        System.out.print("输入需要修改的书籍作者: ");
+                        String author = scanner.nextLine();
+                        System.out.print("输入需要修改的书籍出版年份: ");
+                        String publicationYear = scanner.nextLine();
+
+                        Book updatedInfo = new Book();
+                        updatedInfo.setIsbn(existingBook.getIsbn());
+                        updatedInfo.setTitle(title);
+                        updatedInfo.setAuthor(author);
+                        updatedInfo.setPublicationYear(publicationYear);
+
+                        // 因为我们在一个正常的 if 代码块中，所以可以自由地调用会抛出检查型异常的方法
+                        // 异常会被外层的 try-catch 捕获
+                        Book updateBook = bookService.updateBook(updatedInfo);
+                        System.out.println("更新的书籍信息为: " + updateBook);
+
+                    } else {
+                        // --- 值不存在时执行 ---
+                        System.out.println("错误：未找到ISBN为 " + isbn + " 的书籍，无法修改。");
                     }
 
-                    System.out.print("输入需要修改书名: ");
-                    String title = scanner.nextLine();
-
-                    System.out.print("输入需要修改的书籍作者: ");
-                    String author = scanner.nextLine();
-
-                    System.out.print("输入需要修改的书籍出版年份: ");
-                    String publicationYear = scanner.nextLine();
-
-                    Book book = new Book();
-                    book.setTitle(title);
-                    book.setAuthor(author);
-                    book.setIsbn(isbn);
-                    book.setPublicationYear(publicationYear);
-
-                    long startTime = System.nanoTime();
-                    bookService.updateBook(book);
-                    long endTime = System.nanoTime();
-                    long durationInNanos = endTime - startTime;
-                    System.out.println("更新信息成功");
-                    System.out.println("功能3耗时: " + durationInNanos);
-                }catch (BookNotFoundException e){
-                    System.out.println(e.getMessage());
-                }catch (RuntimeException e){
-                    System.out.println(e.getMessage());
+                } catch (Exception e) { // 外层的 catch 会捕获所有异常，包括 BookNotFoundException
+                    System.out.println("操作失败: " + e.getMessage());
                 }
-                break;
+                    break;
 
                 case "4":
                 {
-                    List<Book> result = new ArrayList<>();
+                    final List<Book> result = new ArrayList<>();
 
                     System.out.println("选择需要查询的词语");
                     System.out.println("1.isbn");
@@ -140,18 +143,17 @@ public class Main {
                     if (choice.equals("1")) {
                         System.out.print("输入isbn: ");
                         String isbn = scanner.nextLine();
-                        Book book = bookService.getBookByIsbn(isbn);
-                        if(book != null){
-                            result.add(bookService.getBookByIsbn(isbn));
-                        }
+                        bookService.getBookByIsbn(isbn)
+                                .ifPresent(book -> result.add(book));
+
                     } else if (choice.equals("2")) {
                         System.out.print("输入书名: ");
                         String title = scanner.nextLine();
-                        result = bookService.getBooksByTitle(title);
+                        result.addAll(bookService.getBooksByTitle(title));
                     } else if (choice.equals("3")) {
                         System.out.print("输入作者: ");
                         String author = scanner.nextLine();
-                        result = bookService.getBookByAuthor(author);
+                        result.addAll(bookService.getBookByAuthor(author));
                     } else {
                         System.out.println("输入不合法");
                         continue;
@@ -174,9 +176,7 @@ public class Main {
                     long endTime = System.nanoTime();
                     long durationInNanos = endTime - startTime;
 
-                    for (Book book : result) {
-                        System.out.println(book.toString());
-                    }
+                    result.forEach(book -> System.out.println(book));
 
                     System.out.println("遍历 耗时: " + durationInNanos);
                 }

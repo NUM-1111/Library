@@ -6,6 +6,7 @@ import com.atmd.library.util.DatabaseUtil;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class DatabaseBookRepository implements BookRepository {
     @Override
@@ -29,7 +30,7 @@ public class DatabaseBookRepository implements BookRepository {
     }
 
     @Override
-    public Book findByIsbn(String isbn){
+    public Optional<Book> findByIsbn(String isbn){
         String sql = "SELECT * FROM books WHERE isbn = ?";
         try(Connection conn = DatabaseUtil.getConnection();
             PreparedStatement pstmt = conn.prepareStatement(sql)){
@@ -37,17 +38,19 @@ public class DatabaseBookRepository implements BookRepository {
             ResultSet rs = pstmt.executeQuery();
 
             if(rs.next()){
-                return new Book(
+                Book book = new Book(
                         rs.getString("title"),
                         rs.getString("author"),
                         String.valueOf(rs.getInt("publication_year")),
                         rs.getString("isbn")
                 );
+                return Optional.of(book);
             }
         }catch (SQLException e){
             System.err.println("数据库查询失败: " + e.getMessage());
+            return Optional.empty();
         }
-        return null;
+        return Optional.empty();
     }
 
     @Override

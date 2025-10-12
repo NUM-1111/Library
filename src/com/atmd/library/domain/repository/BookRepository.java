@@ -2,11 +2,12 @@ package com.atmd.library.domain.repository;
 import com.atmd.library.domain.model.Book;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface BookRepository {
     //基本功能
     void save(Book book);
-    Book findByIsbn(String isbn);
+    Optional<Book> findByIsbn(String isbn);
     void update(Book book);
     List<Book> findAll();
     List<Book> findByTitleContains(String title);

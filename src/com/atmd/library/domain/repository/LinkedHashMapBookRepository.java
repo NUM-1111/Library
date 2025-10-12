@@ -6,6 +6,8 @@ import java.util.LinkedHashMap;
 import java.util.ArrayList;
 import java.util.List;
 import java.io.*;
+import java.util.Optional;
+import java.util.stream.*;
 
 public class LinkedHashMapBookRepository implements BookRepository {
     private final LinkedHashMap<String, Book> library = new java.util.LinkedHashMap<>();
@@ -22,8 +24,8 @@ public class LinkedHashMapBookRepository implements BookRepository {
      * 根据ISBN查找一本书(Read)
      * */
     @Override
-    public Book findByIsbn(String isbn){
-        return library.get(isbn);
+    public Optional<Book> findByIsbn(String isbn){
+        return Optional.ofNullable(library.get(isbn));
     }
 
     @Override
@@ -36,13 +38,10 @@ public class LinkedHashMapBookRepository implements BookRepository {
      * */
     @Override
     public  List<Book> findByTitleContains(String title){
-        List<Book> res = new ArrayList<>();
-        for(Book book : library.values()){
-            if(book.getTitle().toLowerCase().contains(title.toLowerCase())){
-                res.add(book);
-            }
-        }
-        return res;
+        return library.values().stream()
+                // 3. 后续操作和 List 的 stream 完全一样！
+                .filter(book -> book.getTitle().toLowerCase().contains(title.toLowerCase()))
+                .collect(Collectors.toList());
     }
 
     /**
@@ -50,13 +49,10 @@ public class LinkedHashMapBookRepository implements BookRepository {
      * */
     @Override
     public  List<Book> findByAuthorContains(String author){
-        List<Book> res = new ArrayList<>();
-        for(Book book : library.values()){
-            if(book.getAuthor().toLowerCase().contains(author.toLowerCase())){
-                res.add(book);
-            }
-        }
-        return res;
+        return library.values().stream()
+                // 3. 后续操作和 List 的 stream 完全一样！
+                .filter(book -> book.getAuthor().toLowerCase().contains(author.toLowerCase()))
+                .collect(Collectors.toList());
     }
 
     /**
@@ -64,7 +60,8 @@ public class LinkedHashMapBookRepository implements BookRepository {
      * */
     @Override
     public List<Book> findAll(){
-        return new ArrayList<>(library.values());
+        return library.values().stream()
+                .collect(Collectors.toList());
     }
 
     /**

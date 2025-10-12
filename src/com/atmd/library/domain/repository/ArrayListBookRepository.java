@@ -1,9 +1,14 @@
 package com.atmd.library.domain.repository;
 import com.atmd.library.domain.model.Book;
+
 import com.atmd.library.domain.repository.BookRepository;
 
 import java.io.*;
-import java.util.*;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
 
 public class ArrayListBookRepository implements BookRepository {
     //成员
@@ -21,13 +26,10 @@ public class ArrayListBookRepository implements BookRepository {
      * 根据ISBN查找一本书(Read)
      * */
     @Override
-    public Book findByIsbn(String isbn){
-        for(Book book : library){
-            if(book.getIsbn().equals(isbn)){
-                return book;
-            }
-        }
-        return null;
+    public Optional<Book> findByIsbn(String isbn){
+        return library.stream()
+                .filter(book -> book.getIsbn().equals(isbn))
+                .findFirst();
     }
 
     @Override
@@ -39,28 +41,40 @@ public class ArrayListBookRepository implements BookRepository {
      * 根据书名模糊查找书籍(Read)
      * */
     @Override
-    public  List<Book> findByTitleContains(String title){
-        List<Book> res = new ArrayList<>();
-        for(Book book : library){
-            if(book.getTitle().toLowerCase().contains(title.toLowerCase())){
-                res.add(book);
-            }
-        }
-        return res;
+//    public  List<Book> findByTitleContains(String title){
+//        List<Book> res = new ArrayList<>();
+//        for(Book book : library){
+//            if(book.getTitle().toLowerCase().contains(title.toLowerCase())){
+//                res.add(book);
+//            }
+//        }
+//        return res;
+//
+
+    public List<Book> findByTitleContains(String title){
+        return library.stream()
+                .filter(book -> book.getTitle().toLowerCase().contains(title.toLowerCase()))
+                .collect(Collectors.toList());
     }
 
     /**
      * 根据作者模糊查找书籍(Read)
      * */
     @Override
-    public  List<Book> findByAuthorContains(String author){
-        List<Book> res = new ArrayList<>();
-        for(Book book : library){
-            if(book.getAuthor().toLowerCase().contains(author.toLowerCase())){
-                res.add(book);
-            }
-        }
-        return res;
+//    public  List<Book> findByAuthorContains(String author){
+//        List<Book> res = new ArrayList<>();
+//        for(Book book : library){
+//            if(book.getAuthor().toLowerCase().contains(author.toLowerCase())){
+//                res.add(book);
+//            }
+//        }
+//        return res;
+//    }
+
+    public List<Book> findByAuthorContains(String author){
+        return library.stream()
+                .filter(book -> book.getAuthor().toLowerCase().contains(author.toLowerCase()))
+                .collect(Collectors.toList());
     }
 
     /**
