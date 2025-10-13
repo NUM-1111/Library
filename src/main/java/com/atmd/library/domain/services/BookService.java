@@ -4,10 +4,12 @@ import com.atmd.library.domain.model.Book;
 import com.atmd.library.domain.repository.BookRepository;
 import com.atmd.library.exception.BookNotFoundException;
 import com.atmd.library.exception.DuplicateIsbnException;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
 
+@Service
 public class BookService {
     // 不再直接new一个具体的实现，而是持有一个接口引用
     private final BookRepository bookRepository;
