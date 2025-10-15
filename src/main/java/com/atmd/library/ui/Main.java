@@ -1,16 +1,4 @@
 package com.atmd.library.ui;
-import com.atmd.library.domain.model.Book;
-import com.atmd.library.domain.repository.BookRepository;
-import com.atmd.library.domain.repository.DatabaseBookRepository;
-import com.atmd.library.domain.repository.LinkedHashMapBookRepository;
-import com.atmd.library.domain.services.BookService;
-import com.atmd.library.exception.BookNotFoundException;
-import com.atmd.library.exception.DuplicateIsbnException;
-
-import java.util.ArrayList;
-import java.util.Optional;
-import  java.util.Scanner;
-import java.util.List;
 
 public class Main {
     public static void main(String[] args) {

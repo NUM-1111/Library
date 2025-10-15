@@ -2,95 +2,103 @@ package com.atmd.library.domain.services;
 
 import com.atmd.library.domain.model.Book;
 import com.atmd.library.domain.repository.BookRepository;
+import com.atmd.library.dto.BookRequestDTO;
+import com.atmd.library.dto.BookResponseDTO;
+import com.atmd.library.dto.BookUpdateDTO;
 import com.atmd.library.exception.BookNotFoundException;
 import com.atmd.library.exception.DuplicateIsbnException;
+import com.atmd.library.mapper.BookMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class BookService {
     // 不再直接new一个具体的实现，而是持有一个接口引用
     private final BookRepository bookRepository;
+    private final BookMapper bookMapper;
 
-    public BookService(BookRepository bookRepository){
+    @Autowired
+    public BookService(BookRepository bookRepository, BookMapper bookMapper){
         this.bookRepository = bookRepository;
+        this.bookMapper = bookMapper;
     }
 
     /**
      * 添加书籍的业务逻辑
      */
-    public void addBook(Book newBook) throws RuntimeException{
-        //业务规则1:验证数据完整性
-        if(newBook.getIsbn()==null || newBook.getTitle()==null || newBook.getIsbn().isEmpty() || newBook.getTitle().isEmpty()){
-            throw new IllegalArgumentException("错误：书籍的 ISBN 和 书名 不能为空或null。");
+    public BookResponseDTO createBook(BookRequestDTO bookDTO){
+        if(bookRepository.existsById(bookDTO.getIsbn())){
+            throw new DuplicateIsbnException("错误 ISBN " + bookDTO.getIsbn() + " 已存在 ");
         }
-        //业务规则2:检查isbn是否已经存在
-        if(bookRepository.findByIsbn(newBook.getIsbn()).isPresent()){
-            throw new DuplicateIsbnException("错误：ISBN " + newBook.getIsbn() + " 已存在。");
-        }
-        //业务规则都通过之后,再进行Repository进行存储
-        bookRepository.save(newBook);
+        Book book = bookMapper.toEntity(bookDTO);
+        Book savedBook = bookRepository.save(book);
+        return bookMapper.toResponseDTO(savedBook);
     }
 
     /**
      * 删除书籍的业务逻辑
      */
-    public void deleteBook(String isbn) throws BookNotFoundException{
+    public void deleteBook(String isbn){
         //业务规则1:检查isbn是否存在
-        if(!bookRepository.findByIsbn(isbn).isPresent()){
+        if(!bookRepository.existsById(isbn)){
             throw new BookNotFoundException("错误：无法删除，未找到ISBN为 " + isbn + " 的书籍。");
         }
         //完成所有业务规则后,开始进行删除
-        bookRepository.deleteByIsbn(isbn);
+        bookRepository.deleteById(isbn);
     }
 
     /**
      * 修改书籍的业务逻辑
      * @return Book,用于ui显示
      */
-    public Book updateBook(Book updateBook) throws BookNotFoundException{
+    public BookResponseDTO updateBook(String isbn, BookUpdateDTO bookDTO){
         //业务规则1:检查需要更新的书籍的isbn是否存在(其实在此之前会进行检查,使得用户使用更加人性化)
-        Book bookToUpdate  = bookRepository.findByIsbn(updateBook.getIsbn())
-                .orElseThrow(() -> new BookNotFoundException("错误：无法更新，未找到ISBN为 " + updateBook.getIsbn() + " 的书籍。"));
-        // 业务逻辑2: 使用传入的数据更新从数据库查找到的对象
-        // 修正：判断逻辑可以更严谨，只有在传入的字符串非空时才更新
-        if (updateBook.getAuthor() != null && !updateBook.getAuthor().isEmpty()) {
-            bookToUpdate.setAuthor(updateBook.getAuthor());
+        Book existingBook  = bookRepository.findById(isbn)
+                .orElseThrow(() -> new BookNotFoundException("错误：无法更新，未找到ISBN为 " + isbn + " 的书籍。"));
+        // 更新字段
+        if (bookDTO.getTitle() != null && !bookDTO.getTitle().isEmpty()) {
+            existingBook.setTitle(bookDTO.getTitle());
         }
-        if (updateBook.getTitle() != null && !updateBook.getTitle().isEmpty()) {
-            bookToUpdate.setTitle(updateBook.getTitle());
+        if (bookDTO.getAuthor() != null && !bookDTO.getAuthor().isEmpty()) {
+            existingBook.setAuthor(bookDTO.getAuthor());
         }
-        if (updateBook.getPublicationYear() != null && !updateBook.getPublicationYear().isEmpty()) {
-            bookToUpdate.setPublicationYear(updateBook.getPublicationYear());
+        if (bookDTO.getPublicationYear() != null){
+            existingBook.setPublicationYear(bookDTO.getPublicationYear());
         }
 
-        //关键:更新到数据库里
-        bookRepository.update(bookToUpdate);
-
-        //所欲业务逻辑完成后
-        return bookToUpdate;
+        Book updatedBook = bookRepository.save(existingBook);
+        return bookMapper.toResponseDTO(updatedBook);
     }
 
     /**
      * 查询,氛围isbn精查询,和title和author浅查询
      * @return Book
      */
-    public List<Book> findAllBooks(){
-        return bookRepository.findAll();
+    public List<BookResponseDTO> findAllBooks(){
+        return bookRepository.findAll().stream()
+                .map(bookMapper::toResponseDTO)
+                .collect(Collectors.toList());
     }
 
-    public Optional<Book> getBookByIsbn(String isbn){
-        return bookRepository.findByIsbn(isbn);
+    public Optional<BookResponseDTO> findBookByIsbn(String isbn){
+        return bookRepository.findById(isbn)
+                .map(bookMapper::toResponseDTO);
     }
 
-    public List<Book> getBooksByTitle(String title){
-        return bookRepository.findByTitleContains(title);
+    public List<BookResponseDTO> findBookByTitle(String title){
+        return bookRepository.findByTitleContainingIgnoreCase(title).stream()
+                .map(bookMapper::toResponseDTO)
+                .collect(Collectors.toList());
     }
 
-    public List<Book> getBookByAuthor(String author){
-        return bookRepository.findByAuthorContains(author);
+    public List<BookResponseDTO> findBookByAuthor(String author){
+        return bookRepository.findByAuthorContainingIgnoreCase(author).stream()
+                .map(bookMapper::toResponseDTO)
+                .collect(Collectors.toList());
     }
 
 }

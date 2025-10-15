@@ -2,9 +2,14 @@ package com.atmd.library.controller;
 
 import com.atmd.library.domain.model.Book;
 import com.atmd.library.domain.services.BookService;
+import com.atmd.library.dto.BookRequestDTO;
+import com.atmd.library.dto.BookResponseDTO;
+import com.atmd.library.dto.BookUpdateDTO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,35 +26,34 @@ public class BookController {
 
     // GET /books
     @GetMapping
-    public List<Book> getAllBooks() {
+    public List<BookResponseDTO> getAllBooks() {
         return bookService.findAllBooks();
     }
 
     // GET /books/{isbn}
     @GetMapping("/{isbn}")
-    public Book getBookByIsbn(@PathVariable String isbn) {
-        return bookService.getBookByIsbn(isbn).orElse(null);
+    public ResponseEntity<BookResponseDTO> getBookByIsbn(@PathVariable String isbn) {
+        return bookService.findBookByIsbn(isbn)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     // POST /books
     @PostMapping
-    public Book addBook(@RequestBody Book book) {
-        bookService.addBook(book);
-        return book;
+    public BookResponseDTO addBook(@Valid @RequestBody  BookRequestDTO bookDTO) {
+        return bookService.createBook(bookDTO);
     }
 
     // DELETE /books/{isbn}
     @DeleteMapping("/{isbn}")
-    public void deleteBook(@PathVariable String isbn) throws Exception {
+    public void deleteBook(@PathVariable String isbn){
         bookService.deleteBook(isbn);
     }
 
     // PUT /books/{isbn}
     @PutMapping("/{isbn}")
-    public Book updateBook(@PathVariable String isbn, @RequestBody Book bookDetails) throws Exception{
-        // 确保URL中的isbn和请求体中的isbn一致，或以URL为准
-        bookDetails.setIsbn(isbn);
-        return bookService.updateBook(bookDetails);
+    public BookResponseDTO updateBook(@PathVariable String isbn,@Valid @RequestBody BookUpdateDTO bookDTO){
+        return bookService.updateBook(isbn,bookDTO);
     }
 
 
@@ -57,15 +61,15 @@ public class BookController {
 // 或
 // GET /books/search?author=some_author
     @GetMapping("/search")
-    public List<Book> searchBooks(
+    public List<BookResponseDTO> searchBooks(
             @RequestParam(value = "title", required = false) String title,
             @RequestParam(value = "author", required = false) String author) {
 
         // 根据传入的参数决定调用哪个服务
         if (title != null) {
-            return bookService.getBooksByTitle(title);
+            return bookService.findBookByTitle(title);
         } else if (author != null) {
-            return bookService.getBookByAuthor(author);
+            return bookService.findBookByAuthor(author);
         }
         // 如果没有提供任何参数，可以返回一个空列表或抛出异常
         return new ArrayList<>();
