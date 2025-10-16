@@ -6,10 +6,12 @@ import com.atmd.library.dto.BookRequestDTO;
 import com.atmd.library.dto.BookResponseDTO;
 import com.atmd.library.dto.BookUpdateDTO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import org.springframework.data.domain.Pageable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,8 +28,10 @@ public class BookController {
 
     // GET /books
     @GetMapping
-    public List<BookResponseDTO> getAllBooks() {
-        return bookService.findAllBooks();
+    public Page<BookResponseDTO> getAllBooks(Pageable pageable) {
+        /*当您在方法参数中声明了一个Pageable pageable时，Spring Boot会自动启用一个强大的功能：
+        它会检查HTTP请求的URL中是否包含page, size, sort这几个参数，并自动将它们的值组装成一个Pageable对象，传递给您的方法。*/
+        return bookService.findAllBooks(pageable);
     }
 
     // GET /books/{isbn}
@@ -60,19 +64,14 @@ public class BookController {
 // GET /books/search?title=some_title
 // 或
 // GET /books/search?author=some_author
-    @GetMapping("/search")
-    public List<BookResponseDTO> searchBooks(
-            @RequestParam(value = "title", required = false) String title,
-            @RequestParam(value = "author", required = false) String author) {
+@GetMapping("/search")
+public Page<BookResponseDTO> searchBooks(
+        @RequestParam(required = false) String title,
+        @RequestParam(required = false) String author,
+        @RequestParam(required = false) Integer year,
+        Pageable pageable) { // 同时也支持分页和排序！
 
-        // 根据传入的参数决定调用哪个服务
-        if (title != null) {
-            return bookService.findBookByTitle(title);
-        } else if (author != null) {
-            return bookService.findBookByAuthor(author);
-        }
-        // 如果没有提供任何参数，可以返回一个空列表或抛出异常
-        return new ArrayList<>();
-    }
+    return bookService.searchBooks(title, author, year, pageable);
+}
 
 }

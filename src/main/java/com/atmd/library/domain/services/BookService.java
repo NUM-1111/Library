@@ -2,6 +2,7 @@ package com.atmd.library.domain.services;
 
 import com.atmd.library.domain.model.Book;
 import com.atmd.library.domain.repository.BookRepository;
+import com.atmd.library.domain.repository.BookSpecification;
 import com.atmd.library.dto.BookRequestDTO;
 import com.atmd.library.dto.BookResponseDTO;
 import com.atmd.library.dto.BookUpdateDTO;
@@ -9,8 +10,11 @@ import com.atmd.library.exception.BookNotFoundException;
 import com.atmd.library.exception.DuplicateIsbnException;
 import com.atmd.library.mapper.BookMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import org.springframework.data.domain.Pageable;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -20,11 +24,36 @@ public class BookService {
     // 不再直接new一个具体的实现，而是持有一个接口引用
     private final BookRepository bookRepository;
     private final BookMapper bookMapper;
+    private final BookSpecification bookSpecification;
 
     @Autowired
-    public BookService(BookRepository bookRepository, BookMapper bookMapper){
+    public BookService(BookRepository bookRepository, BookMapper bookMapper, BookSpecification bookSpecification) {
         this.bookRepository = bookRepository;
         this.bookMapper = bookMapper;
+        this.bookSpecification = bookSpecification; // <-- 2. 初始化
+    }
+
+    /**
+     * searchBooks
+     */
+    public Page<BookResponseDTO> searchBooks(String title,String author,Integer year,Pageable pageable){
+        //初始化一个“空的”查询条件，它不会过滤任何东西
+        Specification<Book> spec = Specification.where(null);
+
+        // 动态地、安全地“拼接”查询条件
+        if (title != null && !title.isEmpty()) {
+            spec = spec.and(bookSpecification.titleContains(title));
+        }
+        if (author != null && !author.isEmpty()) {
+            spec = spec.and(bookSpecification.authorContains(author));
+        }
+        if (year != null) {
+            spec = spec.and(bookSpecification.publicationYearEquals(year));
+        }
+
+        // 使用支持Specification和Pageable的findAll方法
+        return bookRepository.findAll(spec, pageable)
+                .map(bookMapper::toResponseDTO);
     }
 
     /**
@@ -78,27 +107,14 @@ public class BookService {
      * 查询,氛围isbn精查询,和title和author浅查询
      * @return Book
      */
-    public List<BookResponseDTO> findAllBooks(){
-        return bookRepository.findAll().stream()
-                .map(bookMapper::toResponseDTO)
-                .collect(Collectors.toList());
+    public Page<BookResponseDTO> findAllBooks(Pageable pageable){
+        Page<Book> bookPage = bookRepository.findAll(pageable);
+        return bookPage.map(bookMapper::toResponseDTO);
     }
 
     public Optional<BookResponseDTO> findBookByIsbn(String isbn){
         return bookRepository.findById(isbn)
                 .map(bookMapper::toResponseDTO);
-    }
-
-    public List<BookResponseDTO> findBookByTitle(String title){
-        return bookRepository.findByTitleContainingIgnoreCase(title).stream()
-                .map(bookMapper::toResponseDTO)
-                .collect(Collectors.toList());
-    }
-
-    public List<BookResponseDTO> findBookByAuthor(String author){
-        return bookRepository.findByAuthorContainingIgnoreCase(author).stream()
-                .map(bookMapper::toResponseDTO)
-                .collect(Collectors.toList());
     }
 
 }
