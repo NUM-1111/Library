@@ -1,0 +1,64 @@
+# src/main/resources/application.yml
+
+# ------------------- 通用配置 (所有环境共用) -------------------
+server:
+  port: 8080 # 服务器端口号
+
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: update # 自动更新表结构
+    show-sql: true # 在控制台显示SQL
+    properties:
+      hibernate:
+        # 统一的命名策略
+        naming:
+          physical-strategy: org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy
+
+  # 默认激活 "dev" 环境
+  profiles:
+    active: dev
+
+# springdoc-openapi (Swagger) 的基本配置
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+  api-docs:
+    path: /v3/api-docs
+
+---
+
+# ------------------- 开发环境 (dev) 配置 -------------------
+spring:
+  config:
+    activate:
+      on-profile: dev
+  datasource:
+    url: jdbc:postgresql://localhost:5432/library_db # 开发专用数据库
+    username: postgres
+    password: heu19530901  # 您的开发数据库密码
+
+logging:
+  level:
+    org.springframework.web: TRACE
+    org.springframework.jdbc.core.JdbcTemplate: DEBUG
+
+---
+
+# ------------------- 生产环境 (prod) 配置 -------------------
+spring:
+  config:
+    activate:
+      on-profile: prod
+  datasource:
+    url: jdbc:postgresql://your_production_db_host:5432/library_db_prod # 生产数据库地址
+    username: prod_user
+    password: ${DB_PASSWORD} # 从环境变量读取密码，更安全
+  jpa:
+    hibernate:
+      ddl-auto: validate # 在生产环境，只验证不修改表结构，更安全
+    show-sql: false # 生产环境不打印SQL
+
+logging:
+  level:
+    org.springframework.web: INFO # 生产环境只记录INFO级别以上的日志
